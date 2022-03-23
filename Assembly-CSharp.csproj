@@ -53,7 +53,7 @@
     <UnityVersion>2020.3.30f1c1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="D:\workSoft\VS2022\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="D:\Unity\ECS\CombatBeeECSGit\CombatBeeECS\Library\PackageCache\com.unity.entities@0.50.0-preview.24\Unity.Entities\SourceGenerators\Unity.Entities.SourceGen.SystemGenerator.dll" />
     <Analyzer Include="D:\Unity\ECS\CombatBeeECSGit\CombatBeeECS\Library\PackageCache\com.unity.entities@0.50.0-preview.24\Unity.Entities\SourceGenerators\Unity.Entities.SourceGen.LambdaJobs.dll" />
     <Analyzer Include="D:\Unity\ECS\CombatBeeECSGit\CombatBeeECS\Library\PackageCache\com.unity.entities@0.50.0-preview.24\Unity.Entities\SourceGenerators\Unity.Entities.SourceGen.JobEntity.dll" />
@@ -62,23 +62,37 @@
     <Analyzer Include="D:\Unity\ECS\CombatBeeECSGit\CombatBeeECS\Library\PackageCache\com.unity.entities@0.50.0-preview.24\Unity.Entities\SourceGenerators\Unity.Entities.SourceGen.AuthoringComponent.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Component\PositionComp.cs" />
-    <Compile Include="Assets\Scripts\Component\VelocityComp.cs" />
-    <Compile Include="Assets\Scripts\Component\ScaleComp.cs" />
-    <Compile Include="Assets\Scripts\Component\ColorComp.cs" />
+    <Compile Include="Assets\Scripts\Authoring\FieldAuthoring.cs" />
     <Compile Include="Assets\Scripts\Component\MeshMatrixComp.cs" />
-    <Compile Include="Assets\Scripts\Component\RenderSharedComp.cs" />
-    <Compile Include="Assets\Scripts\Component\TeamSharedComp.cs" />
-    <Compile Include="Assets\Scripts\Component\PropertiesBlob.cs" />
-    <Compile Include="Assets\Scripts\Component\GridIndexComp.cs" />
-    <Compile Include="Assets\Scripts\Component\GridComp.cs" />
-    <Compile Include="Assets\Scripts\Component\GridSummaryComp.cs" />
-    <Compile Include="Assets\Scripts\Component\DeadStateComp.cs" />
-    <Compile Include="Assets\Scripts\Component\LifeComp.cs" />
-    <Compile Include="Assets\Scripts\Component\BeeTagComp.cs" />
-    <Compile Include="Assets\Scripts\Component\ResourceTagComp.cs" />
     <Compile Include="Assets\Scripts\Component\ParticalTagComp.cs" />
     <Compile Include="Assets\Scripts\Component\MouseRayCasterComp.cs" />
+    <Compile Include="Assets\Scripts\BlobAsset\PropertiesBlob.cs" />
+    <Compile Include="Assets\Scripts\Authoring\ParticalAuthoring.cs" />
+    <Compile Include="Assets\Scripts\Component\PropertiesBlobReferenceComp.cs" />
+    <Compile Include="Assets\Scripts\Component\FieldTagComp.cs" />
+    <Compile Include="Assets\Scripts\Authoring\GridAuthoring.cs" />
+    <Compile Include="Assets\Scripts\Authoring\BeeSpawnerAuthoring.cs" />
+    <Compile Include="Assets\Scripts\Component\ResourceTagComp.cs" />
+    <Compile Include="Assets\Scripts\System\BeeSpawnerSystem.cs" />
+    <Compile Include="Assets\Scripts\Component\DeadStateComp.cs" />
+    <Compile Include="Assets\Scripts\Component\BeeTagComp.cs" />
+    <Compile Include="Assets\Scripts\Component\ColorComp.cs" />
+    <Compile Include="Assets\Scripts\Component\PositionComp.cs" />
+    <Compile Include="Assets\Scripts\Component\TeamSharedComp.cs" />
+    <Compile Include="Assets\Scripts\Component\VelocityComp.cs" />
+    <Compile Include="Assets\Scripts\Component\BeeSpawnComp.cs" />
+    <Compile Include="Assets\Scripts\Component\GridSummaryComp.cs" />
+    <Compile Include="Assets\Scripts\Component\GridComp.cs" />
+    <Compile Include="Assets\Scripts\Component\GridIndexComp.cs" />
+    <Compile Include="Assets\Scripts\Component\RenderSharedComp.cs" />
+    <Compile Include="Assets\Scripts\Component\LifeComp.cs" />
+    <Compile Include="Assets\Scripts\Component\ScaleComp.cs" />
+    <Compile Include="Assets\Scripts\Authoring\ResourceAuthoring.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\FieldContainer.shader" />
+    <None Include="Assets\Shaders\InstancedColor.shader" />
+    <None Include="Assets\Shaders\InstancedColorMelt.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
