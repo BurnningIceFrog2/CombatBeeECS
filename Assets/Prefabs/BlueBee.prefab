@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 428085351786228627}
   - component: {fileID: 428085351786228626}
   m_Layer: 0
-  m_Name: Bee
+  m_Name: BlueBee
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

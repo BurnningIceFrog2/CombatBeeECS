@@ -3,7 +3,8 @@ using UnityEngine;
 
 public struct BeeSpawnComp : IComponentData
 {
-    public Entity BeePrefab;
+    public Entity BlueBeePrefab;
+    public Entity YellowBeePrefab;
     public int BeeCount;
     public float MaxBeeSize;
     public float MinBeeSize;

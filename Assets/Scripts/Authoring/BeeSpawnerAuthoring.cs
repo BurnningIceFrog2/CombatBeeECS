@@ -6,7 +6,8 @@ public class BeeSpawnerAuthoring : MonoBehaviour,IConvertGameObjectToEntity,IDec
 {
     /*public Mesh mesh;
     public Material material;*/
-    public GameObject Prefab;
+    public GameObject BluePrefab;
+    public GameObject YellowPrefab;
     public int beeCount;
     public float maxBeeSize;
     public float minBeeSize;
@@ -16,14 +17,17 @@ public class BeeSpawnerAuthoring : MonoBehaviour,IConvertGameObjectToEntity,IDec
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
-        referencedPrefabs.Add(Prefab);
+        referencedPrefabs.Add(BluePrefab);
+        referencedPrefabs.Add(YellowPrefab);
     }
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-       var entityPrefab= conversionSystem.GetPrimaryEntity(Prefab);
+       var bluePrefab= conversionSystem.GetPrimaryEntity(BluePrefab);
+        var yellowPrefab= conversionSystem.GetPrimaryEntity(YellowPrefab);
         BeeSpawnComp spawnData = new BeeSpawnComp
         {
-            BeePrefab= entityPrefab,
+            BlueBeePrefab= bluePrefab,
+            YellowBeePrefab=yellowPrefab,
             BeeCount = beeCount,
             MaxBeeSize = maxBeeSize,
             MinBeeSize = minBeeSize,

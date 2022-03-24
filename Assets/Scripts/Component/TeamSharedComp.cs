@@ -5,6 +5,4 @@ using Unity.Entities;
 public struct TeamSharedComp : ISharedComponentData
 {
     public int TeamCode;
-    public float TeamAttraction;
-    public float TeamRepulsion;
 }

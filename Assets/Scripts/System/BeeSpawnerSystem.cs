@@ -2,89 +2,67 @@ using Unity.Entities;
 using Unity.Burst;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Rendering;
+using UnityEngine;
+using Unity.Collections;
+using Random = Unity.Mathematics.Random;
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial class BeeSpawnerSystem : SystemBase
 {
     BeginInitializationEntityCommandBufferSystem commandBufferSystem;
-    //EntityArchetype beeBaseArchetype;
+    BlobAssetReference<PropertiesBlob> blob;
+    
 
     protected override void OnCreate()
     {
         commandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
-        /*beeBaseArchetype = EntityManager.CreateArchetype(typeof(PositionComp), typeof(ScaleComp),
-            typeof(VelocityComp), typeof(ColorComp),typeof(RenderSharedComp),
-            typeof(BeeTagComp), typeof(MeshMatrixComp), typeof(TeamSharedComp),
-            typeof(PropertiesBlobReferenceComp)
-            );*/
-    }
-
-    partial struct BeeSpawnJob : IJobEntity 
-    {
-        //public EntityArchetype beeBaseArchetype;
-        public EntityCommandBuffer.ParallelWriter commandBuffer;
-        public void Execute(ref BeeSpawnComp spawnData) 
-        {
-            BlobAssetReference<PropertiesBlob> blob = PropertiesBlob.CreatePropertiesBlob();
-            for (int i = 0; i < spawnData.BeeCount; i++)
-            {
-                var bee = commandBuffer.Instantiate(i,spawnData.BeePrefab);
-                //var bee = commandBuffer.CreateEntity(i, beeBaseArchetype);
-                commandBuffer.SetComponent(i, bee, new PositionComp { Value=new float3(0,0,0)});
-                commandBuffer.SetComponent(i, bee, new ScaleComp { Value = new float3(1, 1, 1) });
-                commandBuffer.SetComponent(i, bee, new VelocityComp { Value = new float3(0, 0, 0) });
-                commandBuffer.SetComponent(i, bee, new ColorComp { Value=new float4(1,1,1,1)});
-                commandBuffer.SetComponent(i, bee, new BeeTagComp { });
-                //commandBuffer.SetComponent(i, bee, new MeshMatrixComp { });
-                commandBuffer.SetComponent(i, bee, new PropertiesBlobReferenceComp { PropertyBlob=blob});
-                int teamCode = i % 2;
-                commandBuffer.SetSharedComponent(i, bee, new TeamSharedComp {
-                    TeamCode=teamCode, 
-                    TeamAttraction=spawnData.TeamAttraction,
-                    TeamRepulsion=spawnData.TeamRepulsion
-                });
-                //commandBuffer.SetSharedComponent(i, bee, renderData);
-            }
-        }
+        blob = PropertiesBlob.CreatePropertiesBlob();
     }
     protected override void OnUpdate()
     {
         var commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
-        BlobAssetReference<PropertiesBlob> blob = PropertiesBlob.CreatePropertiesBlob();
-        //commandBuffer.CreateEntity(0,beeBaseArchetype);
-        //commandBuffer.CreateEntity
+        TeamSharedComp team0 = new TeamSharedComp { TeamCode = 0 };
+        TeamSharedComp team1 = new TeamSharedComp { TeamCode = 1 };
+        float fieldSizex= blob.Value.FieldSize.x;
         Entities.WithName("BeeSpawnerSystem")
             .WithoutBurst()
-            .ForEach((Entity entity, int entityInQueryIndex, ref BeeSpawnComp spawnerData) =>
+            .ForEach((Entity entity, int entityInQueryIndex, ref BeeSpawnComp spawnerData,in LocalToWorld location) =>
             {
                 for (int i = 0; i < spawnerData.BeeCount; i++)
                 {
-                    var bee = commandBuffer.Instantiate(entityInQueryIndex, spawnerData.BeePrefab);
-                    //var bee = commandBuffer.CreateEntity(i, beeBaseArchetype);
-                    commandBuffer.AddComponent(i, bee, new Translation { Value = new float3(0, 0, 0) });
-                    commandBuffer.AddComponent(i, bee, new NonUniformScale { Value = new float3(1, 1, 1) });
-                    commandBuffer.AddComponent(i, bee, new VelocityComp { Value = new float3(0, 0, 0) });
-                    commandBuffer.AddComponent(i, bee, new ColorComp { Value = new float4(1, 1, 1, 1) });
-                    commandBuffer.AddComponent(i, bee, new BeeTagComp { });
-                    //commandBuffer.SetComponent(i, bee, new MeshMatrixComp { });
-                    commandBuffer.AddComponent(i, bee, new PropertiesBlobReferenceComp { PropertyBlob = blob });
                     int teamCode = i % 2;
-                    commandBuffer.AddSharedComponent(i, bee, new TeamSharedComp
+                    Entity bee;
+                    if (teamCode == 0)
                     {
-                        TeamCode = teamCode,
-                        TeamAttraction = spawnerData.TeamAttraction,
-                        TeamRepulsion = spawnerData.TeamRepulsion
+                        bee = commandBuffer.Instantiate(entityInQueryIndex, spawnerData.BlueBeePrefab);
+                        commandBuffer.AddSharedComponent(entityInQueryIndex, bee, team0);
+                    }
+                    else 
+                    {
+                        bee = commandBuffer.Instantiate(entityInQueryIndex, spawnerData.YellowBeePrefab);
+                        commandBuffer.AddSharedComponent(entityInQueryIndex, bee, team1);
+                    }
+                    float3 pos = new float3(1,0,0) * (-fieldSizex * .4f + fieldSizex * .8f * teamCode);
+                    var position = math.transform(location.Value,pos);
+                    Random r = new Random((uint)(i+1));
+                    float3 one = new float3(1,1,1);
+                    float size=r.NextFloat(spawnerData.MinBeeSize, spawnerData.MaxBeeSize);
+                    commandBuffer.SetComponent(entityInQueryIndex, bee, new Translation { Value = position });
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new NonUniformScale { Value = one });
+                    ;
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new VelocityComp { Value = r.NextFloat3(one)*spawnerData.InitVelocity });
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new ColorComp { Value = new float4(1, 1, 1, 1) });
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new SmoothRotationComp { 
+                        SmoothPosition=pos+new float3(0.01f,0,0),
+                        smoothDirection=float3.zero
                     });
-                    //commandBuffer.SetSharedComponent(i, bee, renderData);
+                    commandBuffer.AddComponent(entityInQueryIndex,bee,new SizeComp { Size=size});
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new BeeTeamComp { TeamCode = teamCode });
+                    commandBuffer.AddComponent(entityInQueryIndex, bee, new BeeTagComp { });
                 }
                 spawnerData.BeeCount = 0;
-                //commandBuffer.DestroyEntity(entityInQueryIndex, entity);
             }).ScheduleParallel();
-        /*BeeSpawnJob job = new BeeSpawnJob { 
-            commandBuffer=commandBuffer,
-            //beeBaseArchetype=beeBaseArchetype
-        };*/
-        //job.ScheduleParallel();
         commandBufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

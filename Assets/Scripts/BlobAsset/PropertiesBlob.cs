@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 public struct PropertiesBlob
 {
@@ -19,6 +20,11 @@ public struct PropertiesBlob
     public float CarryStiffness;
     public int BeesPerResource;
     public float ResourceSpawnRate;
+    public float3 FieldSize;
+    public float Gravity;
+    public float TeamAttraction;
+    public float TeamRepulsion;
+    public float ResourceSize;
 
     public static BlobAssetReference<PropertiesBlob> CreatePropertiesBlob() 
     {
@@ -38,6 +44,11 @@ public struct PropertiesBlob
         blob.RotationStiffness = 5f;
         blob.SnapStiffness = 2f;
         blob.CarryStiffness = 15f;
+        blob.FieldSize = new float3(100,20,30);
+        blob.Gravity = -20f;
+        blob.TeamAttraction = 5f;
+        blob.TeamRepulsion = 4f;
+        blob.ResourceSize = 0.75f;
         var result = builder.CreateBlobAssetReference<PropertiesBlob>(Allocator.Persistent);
         builder.Dispose();
         return result;

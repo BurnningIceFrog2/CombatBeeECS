@@ -132,8 +132,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 961852549}
-  - component: {fileID: 961852548}
   - component: {fileID: 961852550}
+  - component: {fileID: 961852548}
   m_Layer: 0
   m_Name: BeeAuthoring
   m_TagString: Untagged
@@ -153,7 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d6fcfa506382b84aa45834712aacded, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 428085351786228624, guid: 4c852433b862c5b49a47c2c101ef138d, type: 3}
+  BluePrefab: {fileID: 428085351786228624, guid: 2fd5186fc8df8e142b157e1874f292c0, type: 3}
+  YellowPrefab: {fileID: 428085351786228624, guid: 4c852433b862c5b49a47c2c101ef138d, type: 3}
   beeCount: 100
   maxBeeSize: 0.5
   minBeeSize: 0.25

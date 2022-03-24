@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-public struct PropertiesBlobReferenceComp : IComponentData
+public struct PropertiesBlobReferenceComp : ISharedComponentData
 {
     public BlobAssetReference<PropertiesBlob> PropertyBlob;
 }
