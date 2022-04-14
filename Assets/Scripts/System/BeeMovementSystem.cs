@@ -73,7 +73,7 @@ public partial class BeeMovementSystem : SystemBase
             bool hasResourceTarget = batchInChunk.Has(ResourceHandler);
             if (hasDead)
             {
-                //test
+                //test22
                 for (int i = 0; i < batchInChunk.Count; i++)
                 {
                     var velocity = velocityArray[i];
