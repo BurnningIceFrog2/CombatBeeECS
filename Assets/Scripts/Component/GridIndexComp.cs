@@ -4,4 +4,5 @@ using Unity.Mathematics;
 public struct GridIndexComp : IComponentData
 {
     public int2 Value;
+    public int StackHeight;
 }

@@ -3,7 +3,9 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
+using UnityEngine;
 using Random = Unity.Mathematics.Random;
+using Unity.Collections.LowLevel.Unsafe;
 
 public partial class BeeMovementSystem : SystemBase
 {
@@ -11,6 +13,7 @@ public partial class BeeMovementSystem : SystemBase
     EntityQuery team0beeQuery;
     EntityQuery team1beeQuery;
     BlobAssetReference<PropertiesBlob> Blob;
+    RandomSystem randomSystem;
 
     protected override void OnCreate()
     {
@@ -19,31 +22,34 @@ public partial class BeeMovementSystem : SystemBase
            ComponentType.ReadWrite<Translation>(),
             ComponentType.ReadWrite<VelocityComp>()
            );
-        team0beeQuery = GetEntityQuery(ComponentType.ReadOnly<BeeTagComp>(),
+        team0beeQuery = GetEntityQuery(
             ComponentType.ReadWrite<Translation>(),
-            ComponentType.ReadOnly<TeamSharedComp>()
+            ComponentType.ReadOnly<Team0TagComp>()
             );
-        team0beeQuery.SetSharedComponentFilter(new TeamSharedComp { TeamCode = 0 });
-        team1beeQuery = GetEntityQuery(ComponentType.ReadOnly<BeeTagComp>(),
+        team1beeQuery = GetEntityQuery(
             ComponentType.ReadWrite<Translation>(),
-            ComponentType.ReadOnly<TeamSharedComp>()
+            ComponentType.ReadOnly<Team1TagComp>()
             );
-        team1beeQuery.SetSharedComponentFilter(new TeamSharedComp {TeamCode=1 });
-        RequireForUpdate(team0beeQuery);
-        RequireForUpdate(team1beeQuery);
         Blob = PropertiesBlob.CreatePropertiesBlob();
+        randomSystem = World.GetOrCreateSystem<RandomSystem>();
     }
     partial struct BeeMoveJob : IJobEntityBatch
     {
         public float DeltaTime;
+        [ReadOnly]
+        public uint Seed;
         [DeallocateOnJobCompletion]
         [ReadOnly] public NativeArray<Translation> Team0Array;
         [DeallocateOnJobCompletion]
         [ReadOnly] public NativeArray<Translation> Team1Array;
+        [DeallocateOnJobCompletion]
+        [ReadOnly] public NativeArray<Random> randomTLS;
         [ReadOnly] public BlobAssetReference<PropertiesBlob> property;
         public ComponentTypeHandle<Translation> TranslationHandler;
         public ComponentTypeHandle<VelocityComp> VelocityHandler;
         public ComponentTypeHandle<SmoothRotationComp> SmoothHandler;
+        [NativeSetThreadIndex]
+        private int threadIndex;
         [ReadOnly]
         public ComponentTypeHandle<BeeTagComp> BeeHandler;
         [ReadOnly]
@@ -64,8 +70,6 @@ public partial class BeeMovementSystem : SystemBase
             NativeArray<BeeTeamComp> teamArray = batchInChunk.GetNativeArray(TeamHandler);
             bool hasDead = batchInChunk.Has(DeadStateHandler);
             bool hasEnemyTarget = batchInChunk.Has(EnemyHandler);
-           /* int index = batchInChunk.GetSharedComponentIndex(TeamHandler);
-            int teamCode=index%2;*/
             bool hasResourceTarget = batchInChunk.Has(ResourceHandler);
             if (hasDead)
             {
@@ -82,7 +86,8 @@ public partial class BeeMovementSystem : SystemBase
             }
             else 
             {
-                Random r = new Random((uint)batchInChunk.Count);
+                Random r = randomTLS[threadIndex];
+                r.InitState((uint)(Seed+ batchIndex));
                 float flightJitter = property.Value.FlightJitter;
                 float damping = property.Value.Damping;
                 float3 sphereFloat3 = new float3(1,1,1);
@@ -90,8 +95,10 @@ public partial class BeeMovementSystem : SystemBase
                 {
                     var velocity = velocityArray[i];
                     var trans = transArray[i];
-                    velocity.Value+= r.NextFloat3(sphereFloat3) * (flightJitter * DeltaTime);
+                    //Debug.Log("update==satrt=="+velocity.Value);
+                    velocity.Value+= r.NextFloat3(-sphereFloat3,sphereFloat3) * (flightJitter * DeltaTime);
                     velocity.Value *= (1f - damping);
+                    //Debug.Log("update==satrt2=="+velocity.Value);
                     int teamCode = teamArray[i].TeamCode;
                     if (teamArray[i].TeamCode == 0)
                     {
@@ -109,16 +116,21 @@ public partial class BeeMovementSystem : SystemBase
                     }
                     else if(hasResourceTarget)
                     {
+                        //Debug.Log("batchIndex=" + batchIndex + ": MoveInfluencedByResource==beforetrans==" + velocity.Value);
                         MoveInfluencedByResource(ref trans,ref velocity,i,teamCode,resourceArray);
+                        //Debug.Log("batchIndex=" + batchIndex + ": MoveInfluencedByResource==aftertrans==" + velocity.Value);
                     }
                     if (hasResourceTarget)
                     {
+                        //Debug.Log("batchIndex=" + batchIndex + ": hasResourceTarget==beforetrans==" + trans.Value);
                         DealWithPosition(ref trans, ref velocity, resourceArray[i]);
+                        //Debug.Log("batchIndex=" + batchIndex + ": hasResourceTarget==aftertrans==" + trans.Value);
                     }
                     else 
                     {
                         DealWithPosition(ref trans,ref velocity);
                     }
+                    //Debug.Log("batchIndex=" + batchIndex + "after update=="+velocity.Value);
                     var smooth = smoothArray[i];
                     DealWithSmoothRotation(ref trans,ref smooth , isAttacking);
                     transArray[i] = new Translation { Value = trans.Value };
@@ -170,11 +182,11 @@ public partial class BeeMovementSystem : SystemBase
                 velocity.Value.z *= 0.8f;
             }
             float resourceModifier = 0f;
-            if (resourceComp.IsHolding) 
+            if (resourceComp.IsHoldingBySelf) 
             {
                 resourceModifier = property.Value.ResourceSize;
             }
-            if (math.abs(trans.Value.y) > property.Value.FieldSize.y * 0.5f- resourceModifier)
+            if (math.abs(trans.Value.y) > (property.Value.FieldSize.y * 0.5f- resourceModifier))
             {
                 trans.Value.y = (property.Value.FieldSize.y * 0.5f- resourceModifier) * math.sign(trans.Value.y);
                 velocity.Value.x *= -0.5f;
@@ -242,7 +254,7 @@ public partial class BeeMovementSystem : SystemBase
         private void MoveInfluencedByResource(ref Translation trans,ref VelocityComp velocity, int index,int teamCode, NativeArray<ResourceTargetComp> resourceArray) 
         {
             var resourceTrans = resourceArray[index].ResourceTrans;
-            if (resourceArray[index].IsHolding)
+            if (resourceArray[index].IsHoldingBySelf)
             {
                 float fieldSizeX = property.Value.FieldSize.x;
                 float3 targetPos = new float3(fieldSizeX*-0.45f+fieldSizeX*0.9f* teamCode, 0,trans.Value.z);
@@ -268,6 +280,8 @@ public partial class BeeMovementSystem : SystemBase
     {
         var team0Array = team0beeQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var team1Array = team1beeQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
+        var randomTLS = new NativeArray<Random>(randomSystem.randomTLS,Allocator.TempJob);
+        uint seed = (uint)(UnityEngine.Random.Range(0.1f, 0.8f) * uint.MaxValue);
         BeeMoveJob job0 = new BeeMoveJob
         {
             TranslationHandler = GetComponentTypeHandle<Translation>(),
@@ -278,10 +292,12 @@ public partial class BeeMovementSystem : SystemBase
             SmoothHandler = GetComponentTypeHandle<SmoothRotationComp>(),
             ResourceHandler = GetComponentTypeHandle<ResourceTargetComp>(),
             TeamHandler = GetComponentTypeHandle<BeeTeamComp>(),
+            randomTLS = randomTLS,
             property = Blob,
             Team0Array = team0Array,
             Team1Array = team1Array,
-            DeltaTime = Time.DeltaTime
+            DeltaTime = Time.DeltaTime,
+            Seed=seed
         };
         Dependency = job0.ScheduleParallel(beeQuery, Dependency);
     }

@@ -30,7 +30,7 @@ public struct PropertiesBlob
     {
         var builder = new BlobBuilder(Allocator.Temp);
         ref PropertiesBlob blob = ref builder.ConstructRoot<PropertiesBlob>();
-        blob.Aggression = 0.5f;
+        blob.Aggression = 0.2f;
         blob.CarryForce = 25f;
         blob.AttackDistance = 4f;
         blob.ChaseForce = 50f;
@@ -49,6 +49,7 @@ public struct PropertiesBlob
         blob.TeamAttraction = 5f;
         blob.TeamRepulsion = 4f;
         blob.ResourceSize = 0.75f;
+        blob.BeesPerResource = 6;
         var result = builder.CreateBlobAssetReference<PropertiesBlob>(Allocator.Persistent);
         builder.Dispose();
         return result;

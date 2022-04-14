@@ -28,19 +28,22 @@ public class BeeSpawnerAuthoring : MonoBehaviour,IConvertGameObjectToEntity,IDec
         {
             BlueBeePrefab= bluePrefab,
             YellowBeePrefab=yellowPrefab,
-            BeeCount = beeCount,
+            //BeeCount = beeCount,
             MaxBeeSize = maxBeeSize,
             MinBeeSize = minBeeSize,
             InitVelocity = initVelocity,
-            TeamAttraction=teamAttraction,
+            //TeamCode=-1,
+            TeamAttraction =teamAttraction,
             TeamRepulsion=teamRepulsion
         };
-        /*RenderSharedComp renderData = new RenderSharedComp
+        BeeGenerateComp beeGenerate = new BeeGenerateComp
         {
-            MaterialValue=material,
-            MeshValue=mesh
-        };*/
+            BeeCount=beeCount,
+            TeamCode = -1
+        };
+        var generateEntity=conversionSystem.CreateAdditionalEntity(GetComponent<BeeSpawnerAuthoring>());
         dstManager.AddComponentData(entity,spawnData);
+        dstManager.AddComponentData(generateEntity, beeGenerate);
         //dstManager.AddSharedComponentData(entity,renderData);
     }
 }

@@ -11,4 +11,5 @@ public struct BeeSpawnComp : IComponentData
     public float InitVelocity;
     public float TeamAttraction;
     public float TeamRepulsion;
+    public int TeamCode;
 }

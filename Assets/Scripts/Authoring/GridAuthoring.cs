@@ -1,18 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
+using Unity.Mathematics;
 
-public class GridAuthoring : MonoBehaviour
+public class GridAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
-    // Start is called before the first frame update
-    void Start()
+    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        dstManager.AddComponent<GridSummaryComp>(entity);
+        dstManager.AddComponent<GridSpawnTagComp>(entity);
     }
 }
